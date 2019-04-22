@@ -1,5 +1,7 @@
 # G2
 
+![](https://github.com/Chencb1991/G2/blob/master/QQ%E6%88%AA%E5%9B%BE20190422184301.png)
+
 ```
 [
   [
