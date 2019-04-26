@@ -1,6 +1,6 @@
 # G2
 
-![](https://github.com/Chencb1991/G2/blob/master/QQ%E6%88%AA%E5%9B%BE20190422184301.png)
+![](https://github.com/Chencb1991/G2/blob/master/QQ%E6%88%AA%E5%9B%BE20190426141727.png)
 
 ```
 [
@@ -201,6 +201,267 @@
 </script>
 </body>
 </html>
+```
+
+
+> vue cli
+
+```
+<template>
+  <div class="mains">
+   <div class="alig2" style="padding: 2em 0;width: 1500px;margin: auto;">
+     <div id="mountNode"></div>
+
+     <div id="lessNode" style="margin-top: 50px"></div>
+   </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "mains",
+  props: {
+    msg: String
+  },
+  data(){
+    return{
+      moredata:'',
+      lessdata:''
+    }
+  },
+  mounted(){
+    this.init()
+  },
+  methods:{
+    init(){
+      var that = this;
+      this.$axios.get('/api', {
+　　    params: { type: 'QHCC',
+          sty: 'QHSYCC',
+          stat: '3',
+          fd: '2019-04-25',
+          mkt: '069001008',
+          code: 'ma1909',
+          sc: 'MA'}
+        })
+      .then(function (response) {
+         //console.log(response.data.slice(1).substring(0,response.data.length-2));
+         let datass = response.data.slice(1).substring(0,response.data.length-2);
+         console.log(JSON.parse(datass));
+         let datasmore = JSON.parse(datass)[0].净多头龙虎榜;
+         let datasless = JSON.parse(datass)[0].净空头龙虎榜;
+         let datasempty = JSON.parse(datass)[0].空头增仓龙虎榜;
+         let datasemptyL = JSON.parse(datass)[0].空头减仓龙虎榜;
+         let datasover = JSON.parse(datass)[0].多头增仓龙虎榜;
+         let datasoverL = JSON.parse(datass)[0].多头减仓龙虎榜;
+         /////////////////////////////////////////////
+         let datasmorecol = [];//净多头龙虎榜
+         let dataslesscol = [];//净空头龙虎榜
+         let arrempty = []; //空头增仓龙虎榜
+         let arremptyL = []; //空头减仓龙虎榜
+         let arreover = []; //多头增仓龙虎榜
+         let arreoverL = []; //多头减仓龙虎榜
+         /////////////////////////////////////////////
+         for(var i=0;i<datasmore.length;i++){
+            let datasmorearr = datasmore[i].split(",");
+             datasmorecol.push({'id':datasmorearr[0],'name':datasmorearr[1]})     
+         };
+         for(var i=0;i<datasless.length;i++){
+            let dataslessarr = datasless[i].split(",");
+             dataslesscol.push({'id':dataslessarr[0],'name':dataslessarr[1]})     
+         };
+
+         for(var i=0;i<datasempty.length;i++){
+            let datasemptyarr = datasempty[i].split(",");
+             arrempty.push({'id':datasemptyarr[0],'name':datasemptyarr[1],'morenum':Number(datasemptyarr[4]),'totalnum':datasemptyarr[2],'title':'空头增仓龙虎榜'})     
+         };//空头增
+
+         for(var i=0;i<datasemptyL.length;i++){
+            let datasemptyarrL = datasemptyL[i].split(",");
+             arremptyL.push({'id':datasemptyarrL[0],'name':datasemptyarrL[1],'morenum':Number(datasemptyarrL[4]),'totalnum':datasemptyarrL[2],'title':'空头减仓龙虎榜'})     
+         };//空头减
+
+         for(var i=datasover.length-1;i>0;i--){
+            let datasoverarr = datasover[i].split(",");
+             arreover.push({'id':datasoverarr[0],'name':datasoverarr[1],'morenum':Number(datasoverarr[4]),'totalnum':datasoverarr[2],'title':'多头增仓龙虎榜'})     
+         };//多头增
+
+         for(var i=datasoverL.length-1;i>0;i--){
+            let datasoverarrL = datasoverL[i].split(",");
+             arreoverL.push({'id':datasoverarrL[0],'name':datasoverarrL[1],'morenum':Number(datasoverarrL[4]),'totalnum':datasoverarrL[2],'title':'多头减仓龙虎榜'})     
+         };//多头减
+
+         console.log(arreover.concat(arreoverL));
+         that.moredata = arreover.concat(arreoverL);//多头多-空
+         that.lessdata= arrempty.concat(arremptyL);
+         that.more();
+         that.less()
+        //  console.log(datasmorecol); 
+        //  console.log(dataslesscol); 
+        //  console.log(arrempty); 
+        //  console.log(arreover); 
+        //  console.log(arremptyL); 
+        // console.log(arreoverL); 
+      })
+      .catch(function (error) {
+      console.log(error);
+      });
+      },
+
+      more(){
+        var chart = new G2.Chart({
+          container: 'mountNode',
+          forceFit: true,
+          padding: 'auto'
+        });
+
+        chart.source(this.moredata);
+        chart.scale('morenum', {
+          alias: '持仓',
+          tickInterval: 300
+        });
+        chart.axis('name', {
+          label: {
+            textStyle: {
+              fill: '#aaaaaa'
+            }
+          },
+          tickLine: {
+            alignWithLabel: false,
+            length: 0
+          }
+        });
+
+        chart.axis('morenum', {
+          label: null,
+          title: {
+            offset: 30
+          }
+        });
+        chart.legend(false);
+       chart.interval().position('name*morenum').opacity(1).color('morenum', function(val){if (val <=0) {
+            return '#36c361';
+          }
+          return '#ff5957';
+        }).label('name*morenum', function(name, morenum) {
+          var offset = 15;
+          if (morenum < 0) {
+            offset *= -1;
+          }
+          return {
+            useHtml: true,
+            htmlTemplate: function htmlTemplate(text, item) {
+              var d = item.point;
+              if (d.value>=0) {
+                return '<div class="g2-label-spec"><span class="g2-label-spec-value"> ' + d.morenum + ' </span></div>';
+              }
+              return '<span class="g2-label">' + d.morenum + '</span>';
+            },
+            offset: offset
+          };
+        });
+
+        chart.render();
+      },
+
+
+      less(){
+        var chart = new G2.Chart({
+          container: 'lessNode',
+          forceFit: true,
+          // height: 380,
+          padding: 'auto'
+        });
+
+        chart.source(this.lessdata);
+        chart.scale('morenum', {
+          alias: '持仓',
+          tickInterval: 300
+        });
+        chart.axis('name', {
+          label: {
+            textStyle: {
+              fill: '#aaaaaa'
+            }
+          },
+          tickLine: {
+            alignWithLabel: false,
+            length: 0
+          }
+        });
+
+        chart.axis('morenum', {
+          label: null,
+          title: {
+            offset: 30
+          }
+        });
+        chart.legend(false);
+       chart.interval().position('name*morenum').opacity(1).color('morenum', function(val){if (val <=0) {
+            return '#36c361';
+          }
+          return '#ff5957';
+        }).label('name*morenum', function(name, morenum) {
+          var offset = 15;
+          if (morenum < 0) {
+            offset *= -1;
+          }
+          return {
+            useHtml: true,
+            htmlTemplate: function htmlTemplate(text, item) {
+              var d = item.point;
+              if (d.value>=0) {
+                return '<div class="g2-label-spec"><span class="g2-label-spec-value"> ' + d.morenum + ' </span></div>';
+              }
+              return '<span class="g2-label">' + d.morenum + '</span>';
+            },
+            offset: offset
+          };
+        });
+
+        chart.render();
+      }
+  }
+};
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped lang="less">
+h3 {
+  margin: 40px 0 0;
+}
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+li {
+  display: inline-block;
+  margin: 0 10px;
+}
+a {
+  color: #42b983;
+}
+   .g2-label {
+        font-size: 12px;
+        text-align: center;
+        line-height: 0.5;
+        color: #595959;
+    }
+
+    .g2-label-spec {
+        font-size: 12px;
+        text-align: center;
+        line-height: 0.5;
+        color: #595959;
+        width: 400px !important;
+    }
+
+    .g2-label-spec-value {
+        color: #ff5250;
+        font-weight: bold;
+    }
+</style>
+
 ```
 
 
